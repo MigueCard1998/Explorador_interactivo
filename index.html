@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Explorador Rick y Morty — Personajes del multiverso</title>
+  <meta name="description" content="Explora los personajes de Rick y Morty">
+
+  <meta property="og:title" content="Explorador Rick y Morty">
+  <meta property="og:description" content="Busca y filtra los personajes del multiverso de Rick y Morty.">
+  <meta property="og:image" content="https://rickandmortyapi.com/api/character/avatar/1.jpeg">
+  <meta property="og:type" content="website">
+
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <header class="cabecera">
+    <div class="marca">
+      <h1>Explorador Rick y Morty</h1>
+      <p>Los personajes del multiverso, a un clic de distancia.</p>
+    </div>
+    <nav aria-label="Navegación principal">
+      <ul class="menu">
+        <li><a href="#">Inicio</a></li>
+        <li><a href="#">Favoritos</a></li>
+        <li><a href="#">Acerca de</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <aside class="filtros">
+    <h2>Buscar personajes</h2>
+    <form action="#" method="get">
+      <p>
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Ej: Rick">
+      </p>
+      <p>
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado">
+          <option value="">Todos</option>
+          <option value="alive">Vivo</option>
+          <option value="dead">Muerto</option>
+          <option value="unknown">Desconocido</option>
+        </select>
+      </p>
+      <p>
+        <label for="genero">Género</label>
+        <select id="genero" name="genero">
+          <option value="">Todos</option>
+          <option value="female">Femenino</option>
+          <option value="male">Masculino</option>
+          <option value="genderless">Sin género</option>
+          <option value="unknown">Desconocido</option>
+        </select>
+      </p>
+      <button type="submit">Buscar</button>
+    </form>
+  </aside>
+
+  <main class="contenido">
+    <h2>Personajes</h2>
+
+    <section class="resultados" aria-label="Resultados de la búsqueda">
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/1.jpeg" alt="Rick Sanchez, científico de pelo azul y bata blanca">
+        <h3>Rick Sanchez</h3>
+        <p class="estado vivo">Vivo · Humano</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/2.jpeg" alt="Morty Smith, adolescente con camiseta amarilla">
+        <h3>Morty Smith</h3>
+        <p class="estado vivo">Vivo · Humano</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/3.jpeg" alt="Summer Smith, adolescente pelirroja">
+        <h3>Summer Smith</h3>
+        <p class="estado vivo">Vivo · Humana</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/4.jpeg" alt="Beth Smith, madre de Summer y Morty">
+        <h3>Beth Smith</h3>
+        <p class="estado vivo">Vivo · Humana</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/5.jpeg" alt="Jerry Smith, padre de Summer y Morty">
+        <h3>Jerry Smith</h3>
+        <p class="estado vivo">Vivo · Humano</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/6.jpeg" alt="Abadango Cluster Princess, personaje alienígena">
+        <h3>Abadango Cluster Princess</h3>
+        <p class="estado vivo">Vivo · Alienígena</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/7.jpeg" alt="Abradolf Lincler, mezcla genética de Hitler y Lincoln">
+        <h3>Abradolf Lincler</h3>
+        <p class="estado desconocido">Desconocido · Experimento genético</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+      <article class="tarjeta">
+        <img src="https://rickandmortyapi.com/api/character/avatar/8.jpeg" alt="Adjudicator Rick, versión de Rick con uniforme de juez">
+        <h3>Adjudicator Rick</h3>
+        <p class="estado muerto">Muerto · Humano</p>
+        <button type="button">Ver detalle</button>
+      </article>
+
+    </section>
+  </main>
+
+  <footer class="pie">
+    <div>
+      <h2>Autor</h2>
+      <p>Miguel Angel Cardona Lopez</p>
+    </div>
+    <div>
+      <h2>Curso</h2>
+      <p>Programación para entornos web 1<br>Universidad de Caldas · 2026-2</p>
+    </div>
+    <div>
+      <h2>Datos</h2>
+      <p><a href="https://rickandmortyapi.com/documentation" target="_blank" rel="noopener">Documentación de la Rick and Morty API</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>
