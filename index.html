@@ -5,139 +5,129 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Explorador Rick y Morty — Personajes del multiverso</title>
-  <meta name="description" content="Explora los personajes de Rick y Morty">
+  <meta name="description" content="Explora los personajes de Rick y Morty: busca por nombre y filtra por estado, especie y género. Proyecto del curso Programación para entornos web 1, Universidad de Caldas.">
 
+  <!-- Open Graph: cambia la URL de la imagen cuando publiques tu sitio -->
   <meta property="og:title" content="Explorador Rick y Morty">
   <meta property="og:description" content="Busca y filtra los personajes del multiverso de Rick y Morty.">
   <meta property="og:image" content="https://rickandmortyapi.com/api/character/avatar/1.jpeg">
   <meta property="og:type" content="website">
 
-  <link rel="stylesheet" href="estilos.css">
-</head>
-<body>
+  <!--
+    Semana 5-6: Tailwind por CDN para practicar y ver resultados de inmediato.
+    Para producción (semana 9, antes del deploy en Vercel) cámbialo por la build
+    de la CLI: ver tailwind.config.js, src/input.css y las instrucciones del README.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
-  <header class="cabecera">
-    <div class="marca">
-      <h1>Explorador Rick y Morty</h1>
-      <p>Los personajes del multiverso, a un clic de distancia.</p>
+  <!-- Pequeños estilos que Tailwind no resuelve solo: animación del modal y estado oculto -->
+  <link rel="stylesheet" href="css/tailwind.css">
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 font-sans">
+
+  <!-- ===================== CABECERA ===================== -->
+  <header class="flex flex-col gap-4 border-b-4 border-lime-400 bg-slate-900 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+    <div>
+      <h1 class="text-2xl font-extrabold tracking-tight text-lime-400 sm:text-3xl">Explorador Rick y Morty</h1>
+      <p class="text-sm text-slate-400">Los personajes del multiverso, a un clic de distancia.</p>
     </div>
     <nav aria-label="Navegación principal">
-      <ul class="menu">
-        <li><a href="#">Inicio</a></li>
-        <li><a href="#">Favoritos</a></li>
-        <li><a href="#">Acerca de</a></li>
+      <ul class="flex gap-2">
+        <li><a href="#" class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900">Inicio</a></li>
+        <li><a href="#" class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900">Favoritos</a></li>
+        <li><a href="#" class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900">Acerca de</a></li>
       </ul>
     </nav>
   </header>
 
-  <aside class="filtros">
-    <h2>Buscar personajes</h2>
-    <form action="#" method="get">
-      <p>
-        <label for="nombre">Nombre</label>
-        <input type="text" id="nombre" name="nombre" placeholder="Ej: Rick">
+  <!-- ===================== LAYOUT PRINCIPAL ===================== -->
+  <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8 lg:flex-row lg:items-start">
+
+    <!-- ===== FILTROS (aside en escritorio, barra arriba en móvil) ===== -->
+    <aside class="shrink-0 rounded-xl border border-slate-800 bg-slate-900 p-5 lg:w-72">
+      <h2 class="mb-4 text-lg font-bold text-slate-100">Buscar personajes</h2>
+      <form id="form-filtros" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-1">
+          <label for="buscar" class="text-sm font-semibold text-slate-400">Nombre</label>
+          <input type="text" id="buscar" name="buscar" placeholder="Ej: Rick"
+                 class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-lime-400 focus:outline-none">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="filtro-estado" class="text-sm font-semibold text-slate-400">Estado</label>
+          <select id="filtro-estado" name="estado"
+                  class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-lime-400 focus:outline-none">
+            <option value="">Todos</option>
+            <option value="Alive">Vivo</option>
+            <option value="Dead">Muerto</option>
+            <option value="unknown">Desconocido</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="filtro-genero" class="text-sm font-semibold text-slate-400">Género</label>
+          <select id="filtro-genero" name="genero"
+                  class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:border-lime-400 focus:outline-none">
+            <option value="">Todos</option>
+            <option value="Female">Femenino</option>
+            <option value="Male">Masculino</option>
+            <option value="Genderless">Sin género</option>
+            <option value="unknown">Desconocido</option>
+          </select>
+        </div>
+      </form>
+    </aside>
+
+    <!-- ===== RESULTADOS ===== -->
+    <main class="flex-1">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-slate-100">Personajes</h2>
+        <p id="contador" class="text-sm text-slate-400" aria-live="polite"></p>
+      </div>
+
+      <!-- Este contenedor arranca vacío: js/app.js lo llena con las tarjetas -->
+      <section id="resultados"
+               class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+               aria-label="Resultados de la búsqueda">
+      </section>
+
+      <!-- Mensaje para cuando un filtro no encuentra nada -->
+      <p id="sin-resultados" hidden class="mt-8 text-center text-slate-400">
+        No encontramos personajes con esos filtros. Prueba cambiando la búsqueda.
       </p>
-      <p>
-        <label for="estado">Estado</label>
-        <select id="estado" name="estado">
-          <option value="">Todos</option>
-          <option value="alive">Vivo</option>
-          <option value="dead">Muerto</option>
-          <option value="unknown">Desconocido</option>
-        </select>
-      </p>
-      <p>
-        <label for="genero">Género</label>
-        <select id="genero" name="genero">
-          <option value="">Todos</option>
-          <option value="female">Femenino</option>
-          <option value="male">Masculino</option>
-          <option value="genderless">Sin género</option>
-          <option value="unknown">Desconocido</option>
-        </select>
-      </p>
-      <button type="submit">Buscar</button>
-    </form>
-  </aside>
+    </main>
+  </div>
 
-  <main class="contenido">
-    <h2>Personajes</h2>
+  <!-- ===================== MODAL DE DETALLE ===================== -->
+  <!-- Oculto por defecto con el atributo [hidden]; js/app.js lo abre y cierra -->
+  <div id="modal-fondo" hidden class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
+    <div id="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo"
+         class="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+      <div class="flex items-start justify-between gap-4">
+        <h3 id="modal-titulo" class="text-xl font-bold text-lime-400"></h3>
+        <button id="modal-cerrar" type="button" aria-label="Cerrar detalle"
+                class="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100">✕</button>
+      </div>
+      <!-- js/app.js inserta aquí la imagen y los datos del personaje -->
+      <div id="modal-cuerpo" class="mt-4"></div>
+    </div>
+  </div>
 
-    <section class="resultados" aria-label="Resultados de la búsqueda">
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/1.jpeg" alt="Rick Sanchez, científico de pelo azul y bata blanca">
-        <h3>Rick Sanchez</h3>
-        <p class="estado vivo">Vivo · Humano</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/2.jpeg" alt="Morty Smith, adolescente con camiseta amarilla">
-        <h3>Morty Smith</h3>
-        <p class="estado vivo">Vivo · Humano</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/3.jpeg" alt="Summer Smith, adolescente pelirroja">
-        <h3>Summer Smith</h3>
-        <p class="estado vivo">Vivo · Humana</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/4.jpeg" alt="Beth Smith, madre de Summer y Morty">
-        <h3>Beth Smith</h3>
-        <p class="estado vivo">Vivo · Humana</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/5.jpeg" alt="Jerry Smith, padre de Summer y Morty">
-        <h3>Jerry Smith</h3>
-        <p class="estado vivo">Vivo · Humano</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/6.jpeg" alt="Abadango Cluster Princess, personaje alienígena">
-        <h3>Abadango Cluster Princess</h3>
-        <p class="estado vivo">Vivo · Alienígena</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/7.jpeg" alt="Abradolf Lincler, mezcla genética de Hitler y Lincoln">
-        <h3>Abradolf Lincler</h3>
-        <p class="estado desconocido">Desconocido · Experimento genético</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-      <article class="tarjeta">
-        <img src="https://rickandmortyapi.com/api/character/avatar/8.jpeg" alt="Adjudicator Rick, versión de Rick con uniforme de juez">
-        <h3>Adjudicator Rick</h3>
-        <p class="estado muerto">Muerto · Humano</p>
-        <button type="button">Ver detalle</button>
-      </article>
-
-    </section>
-  </main>
-
-  <footer class="pie">
+  <!-- ===================== PIE ===================== -->
+  <footer class="mt-10 grid grid-cols-1 gap-6 border-t border-slate-800 bg-slate-900 px-4 py-6 text-sm text-slate-400 sm:grid-cols-3 sm:px-8">
     <div>
-      <h2>Autor</h2>
-      <p>Miguel Angel Cardona Lopez</p>
+      <h2 class="mb-1 font-semibold text-slate-200">Autor</h2>
+      <p>Tu Nombre Apellido</p>
     </div>
     <div>
-      <h2>Curso</h2>
+      <h2 class="mb-1 font-semibold text-slate-200">Curso</h2>
       <p>Programación para entornos web 1<br>Universidad de Caldas · 2026-2</p>
     </div>
     <div>
-      <h2>Datos</h2>
-      <p><a href="https://rickandmortyapi.com/documentation" target="_blank" rel="noopener">Documentación de la Rick and Morty API</a></p>
+      <h2 class="mb-1 font-semibold text-slate-200">Datos</h2>
+      <p><a href="https://rickandmortyapi.com/documentation" target="_blank" rel="noopener" class="text-lime-400 hover:underline">Documentación de la Rick and Morty API</a></p>
     </div>
   </footer>
 
+  <!-- Módulos ES: datos.js (datos), logica.js (filtrar/contar, sin DOM), app.js (render + eventos) -->
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
