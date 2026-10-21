@@ -5,22 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Explorador Rick y Morty — Personajes del multiverso</title>
-  <meta name="description" content="Explora los personajes de Rick y Morty: busca por nombre y filtra por estado, especie y género. Proyecto del curso Programación para entornos web 1, Universidad de Caldas.">
+  <meta name="description" content="Explora los personajes de Rick y Morty: busca por nombre, filtra por estado y género, y guarda tus favoritos. Proyecto del curso Programación para entornos web 1, Universidad de Caldas.">
 
-  <!-- Open Graph: cambia la URL de la imagen cuando publiques tu sitio -->
   <meta property="og:title" content="Explorador Rick y Morty">
-  <meta property="og:description" content="Busca y filtra los personajes del multiverso de Rick y Morty.">
+  <meta property="og:description" content="Busca, filtra y guarda tus personajes favoritos del multiverso de Rick y Morty.">
   <meta property="og:image" content="https://rickandmortyapi.com/api/character/avatar/1.jpeg">
   <meta property="og:type" content="website">
 
-  <!--
-    Semana 5-6: Tailwind por CDN para practicar y ver resultados de inmediato.
-    Para producción (semana 9, antes del deploy en Vercel) cámbialo por la build
-    de la CLI: ver tailwind.config.js, src/input.css y las instrucciones del README.
-  -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-  <!-- Pequeños estilos que Tailwind no resuelve solo: animación del modal y estado oculto -->
+  <!-- Build de producción de Tailwind (ver package.json: npm run build:css) -->
   <link rel="stylesheet" href="css/tailwind.css">
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans">
@@ -33,8 +25,15 @@
     </div>
     <nav aria-label="Navegación principal">
       <ul class="flex gap-2">
-        <li><a href="#" class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900">Inicio</a></li>
-        <li><a href="#" class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900">Favoritos</a></li>
+        <li>
+          <a href="#" id="enlace-inicio" data-vista="inicio"
+             class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900 aria-[current=page]:bg-lime-400 aria-[current=page]:text-slate-900"
+             aria-current="page">Inicio</a>
+        </li>
+        <li>
+          <a href="#" id="enlace-favoritos" data-vista="favoritos"
+             class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900 aria-[current=page]:bg-lime-400 aria-[current=page]:text-slate-900">Favoritos</a>
+        </li>
         <li><a href="#" class="block rounded-full px-4 py-2 text-sm font-medium text-slate-100 hover:bg-lime-400 hover:text-slate-900">Acerca de</a></li>
       </ul>
     </nav>
@@ -43,8 +42,8 @@
   <!-- ===================== LAYOUT PRINCIPAL ===================== -->
   <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8 lg:flex-row lg:items-start">
 
-    <!-- ===== FILTROS (aside en escritorio, barra arriba en móvil) ===== -->
-    <aside class="shrink-0 rounded-xl border border-slate-800 bg-slate-900 p-5 lg:w-72">
+    <!-- ===== FILTROS (solo tienen sentido en la vista Inicio) ===== -->
+    <aside id="panel-filtros" class="shrink-0 rounded-xl border border-slate-800 bg-slate-900 p-5 lg:w-72">
       <h2 class="mb-4 text-lg font-bold text-slate-100">Buscar personajes</h2>
       <form id="form-filtros" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
@@ -76,28 +75,47 @@
       </form>
     </aside>
 
-    <!-- ===== RESULTADOS ===== -->
+    <!-- ===== CONTENIDO: una sola sección que cambia según la vista ===== -->
     <main class="flex-1">
       <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-lg font-bold text-slate-100">Personajes</h2>
+        <h2 id="titulo-vista" class="text-lg font-bold text-slate-100">Personajes</h2>
         <p id="contador" class="text-sm text-slate-400" aria-live="polite"></p>
       </div>
 
-      <!-- Este contenedor arranca vacío: js/app.js lo llena con las tarjetas -->
+      <!-- Estado: cargando -->
+      <div id="estado-cargando" hidden class="flex flex-col items-center gap-3 py-16 text-slate-400">
+        <div class="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-lime-400"></div>
+        <p>Cargando...</p>
+      </div>
+
+      <!-- Estado: error -->
+      <div id="estado-error" hidden class="flex flex-col items-center gap-3 rounded-xl border border-red-900 bg-red-950/40 py-16 text-center text-red-200">
+        <p id="mensaje-error">No pudimos cargar los personajes.</p>
+        <button id="boton-reintentar" type="button"
+                class="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400">
+          Reintentar
+        </button>
+      </div>
+
+      <!-- Estado: vacío (búsqueda/filtro sin resultados, o sin favoritos) -->
+      <p id="estado-vacio" hidden class="py-16 text-center text-slate-400"></p>
+
+      <!-- Resultados: grilla de tarjetas (datos) -->
       <section id="resultados"
                class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-               aria-label="Resultados de la búsqueda">
-      </section>
+               aria-label="Resultados"></section>
 
-      <!-- Mensaje para cuando un filtro no encuentra nada -->
-      <p id="sin-resultados" hidden class="mt-8 text-center text-slate-400">
-        No encontramos personajes con esos filtros. Prueba cambiando la búsqueda.
-      </p>
+      <!-- "Cargar más": solo aparece en la vista Inicio mientras haya siguiente página -->
+      <div class="mt-6 flex justify-center">
+        <button id="boton-cargar-mas" type="button" hidden
+                class="rounded-lg border border-lime-400 px-5 py-2 text-sm font-semibold text-lime-400 hover:bg-lime-400 hover:text-slate-900">
+          Cargar más
+        </button>
+      </div>
     </main>
   </div>
 
   <!-- ===================== MODAL DE DETALLE ===================== -->
-  <!-- Oculto por defecto con el atributo [hidden]; js/app.js lo abre y cierra -->
   <div id="modal-fondo" hidden class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
     <div id="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo"
          class="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
@@ -106,7 +124,6 @@
         <button id="modal-cerrar" type="button" aria-label="Cerrar detalle"
                 class="rounded-full p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100">✕</button>
       </div>
-      <!-- js/app.js inserta aquí la imagen y los datos del personaje -->
       <div id="modal-cuerpo" class="mt-4"></div>
     </div>
   </div>
@@ -127,7 +144,7 @@
     </div>
   </footer>
 
-  <!-- Módulos ES: datos.js (datos), logica.js (filtrar/contar, sin DOM), app.js (render + eventos) -->
+  <!-- Módulos ES: api (fetch), logica (filtrar, sin DOM), favoritos (LocalStorage), app (render + eventos) -->
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
