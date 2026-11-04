@@ -1,0 +1,6 @@
+   node_modules/
+   css/tailwind.css
+   .env
+   .env.*
+   .DS_Store
+   Thumbs.db

@@ -92,10 +92,19 @@ function render(lista, mensajeVacio) {
   contadorTexto.textContent = textoContador(lista.length);
 }
 
+function claseFavorito(marcado) {
+  const base =
+    "absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full " +
+    "bg-slate-900/60 text-lg leading-none backdrop-blur-sm transition-colors";
+  return `${base} ${marcado ? "text-pink-500" : "text-slate-200 hover:text-pink-400"}`;
+}
+
 function crearTarjeta(personaje) {
   const articulo = document.createElement("article");
   articulo.className =
-    "relative flex flex-col gap-2 rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-lg";
+    "group relative flex flex-col gap-2 rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-lg " +
+    "transition duration-200 ease-out " +
+    "hover:-translate-y-1 hover:border-lime-400/60 hover:shadow-xl hover:shadow-lime-400/10";
   articulo.dataset.id = personaje.id;
 
   const colorEstado = COLOR_ESTADO[personaje.status] ?? COLOR_ESTADO.unknown;
@@ -103,14 +112,16 @@ function crearTarjeta(personaje) {
   const marcado = esFavorito(personaje.id);
 
   articulo.innerHTML = `
-    <button type="button" data-accion="favorito" aria-pressed="${marcado}"
-            aria-label="${marcado ? "Quitar de favoritos" : "Agregar a favoritos"}"
-            class="absolute right-3 top-3 text-xl leading-none drop-shadow ${marcado ? "text-pink-500" : "text-slate-400 hover:text-pink-400"}">
-      ${marcado ? "♥" : "♡"}
-    </button>
-    <img src="${personaje.image}" alt="${personaje.name}, personaje de Rick y Morty"
-         class="aspect-square w-full rounded-lg object-cover">
-    <h3 class="truncate pr-6 text-base font-bold text-slate-100">${personaje.name}</h3>
+    <div class="relative overflow-hidden rounded-lg">
+      <img src="${personaje.image}" alt="${personaje.name}, personaje de Rick y Morty"
+           class="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105">
+      <button type="button" data-accion="favorito" aria-pressed="${marcado}"
+              aria-label="${marcado ? "Quitar de favoritos" : "Agregar a favoritos"}"
+              class="${claseFavorito(marcado)}">
+        ${marcado ? "♥" : "♡"}
+      </button>
+    </div>
+    <h3 class="truncate text-base font-bold text-slate-100">${personaje.name}</h3>
     <p class="flex items-center gap-2 text-sm text-slate-400">
       <span class="h-2.5 w-2.5 rounded-full ${colorEstado}"></span>
       ${estadoTexto} · ${personaje.species}
@@ -254,9 +265,7 @@ contenedorResultados.addEventListener("click", (evento) => {
       botonFavorito.textContent = quedaMarcado ? "♥" : "♡";
       botonFavorito.setAttribute("aria-pressed", String(quedaMarcado));
       botonFavorito.setAttribute("aria-label", quedaMarcado ? "Quitar de favoritos" : "Agregar a favoritos");
-      botonFavorito.className = `absolute right-3 top-3 text-xl leading-none drop-shadow ${
-        quedaMarcado ? "text-pink-500" : "text-slate-400 hover:text-pink-400"
-      }`;
+      botonFavorito.className = claseFavorito(quedaMarcado);
     }
     return;
   }
@@ -283,7 +292,7 @@ function abrirModal(personaje) {
   modalTitulo.textContent = personaje.name;
   modalCuerpo.innerHTML = `
     <img src="${personaje.image}" alt="${personaje.name}"
-         class="mb-4 aspect-square w-full rounded-xl object-cover">
+         class="mx-auto mb-4 aspect-square w-44 rounded-xl object-cover">
     <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
       <dt class="font-semibold text-slate-400">Estado</dt>
       <dd class="text-slate-100">${ESTADOS[personaje.status] ?? personaje.status}</dd>
@@ -296,6 +305,10 @@ function abrirModal(personaje) {
       <dt class="font-semibold text-slate-400">Última ubicación</dt>
       <dd class="text-slate-100">${personaje.location.name}</dd>
     </dl>
+    <button type="button" data-accion="cerrar-modal"
+            class="mt-5 w-full rounded-lg bg-lime-400 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-lime-300">
+      Volver
+    </button>
   `;
   modalFondo.hidden = false;
 }
@@ -310,6 +323,10 @@ modalFondo.addEventListener("click", (evento) => {
 });
 document.addEventListener("keydown", (evento) => {
   if (evento.key === "Escape" && !modalFondo.hidden) cerrarModal();
+});
+
+modalCuerpo.addEventListener("click", (evento) => {
+  if (evento.target.closest('[data-accion="cerrar-modal"]')) cerrarModal();
 });
 
 // --- Primer pintado al cargar la página ---
