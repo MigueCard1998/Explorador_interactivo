@@ -44,3 +44,19 @@ export async function obtenerPersonajesPorIds(ids) {
   const data = await pedirJSON(`${URL_BASE}/${ids.join(",")}`);
   return Array.isArray(data) ? data : [data];
 }
+
+export async function obtenerEpisodios() {
+  const base = "https://rickandmortyapi.com/api/episode";
+
+  const pedirPagina = async (pagina) => {
+    const respuesta = await fetch(`${base}?page=${pagina}`);
+    if (!respuesta.ok) throw new Error(`La API respondió con el código ${respuesta.status}`);
+    return respuesta.json();
+  };
+
+  const primera = await pedirPagina(1);
+  const restantes = await Promise.all(
+    Array.from({ length: primera.info.pages - 1 }, (_, i) => pedirPagina(i + 2))
+  );
+  return [primera, ...restantes].flatMap((pagina) => pagina.results);
+}

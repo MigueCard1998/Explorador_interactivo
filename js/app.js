@@ -4,8 +4,8 @@
 // cargar(), render() y los tres estados: cargando / error / datos (vacío
 // incluido) — nunca una pantalla en blanco.
 
-import { obtenerPersonajes, obtenerPersonajesPorIds } from "./api.js";
-import { filtrarPersonajes, textoContador } from "./logica.js";
+import { obtenerPersonajes, obtenerPersonajesPorIds, obtenerEpisodios } from "./api.js";
+import { filtrarPersonajes, textoContador, agruparPorTemporada, idsDePersonajes } from "./logica.js";
 import { obtenerFavoritos, esFavorito, alternarFavorito } from "./favoritos.js";
 
 // --- Elementos del DOM ---
@@ -28,6 +28,7 @@ const selectGenero = document.getElementById("filtro-genero");
 
 const enlaceInicio = document.getElementById("enlace-inicio");
 const enlaceFavoritos = document.getElementById("enlace-favoritos");
+const enlaceCapitulos = document.getElementById("enlace-capitulos");
 
 const modalFondo = document.getElementById("modal-fondo");
 const modalTitulo = document.getElementById("modal-titulo");
@@ -36,10 +37,12 @@ const botonCerrarModal = document.getElementById("modal-cerrar");
 
 const ESTADOS = { Alive: "Vivo", Dead: "Muerto", unknown: "Desconocido" };
 const COLOR_ESTADO = { Alive: "bg-lime-400", Dead: "bg-red-500", unknown: "bg-slate-500" };
+const TITULOS = { inicio: "Personajes", favoritos: "Tus favoritos", capitulos: "Guía de capítulos" };
 
 // --- Estado de la app (en memoria, no en el DOM) ---
 let vista = "inicio"; // "inicio" | "favoritos"
 let personajesCargados = []; // acumula páginas en la vista Inicio
+let episodiosCargados = []; // se piden una sola vez y se reutilizan
 let siguientePaginaURL = null;
 
 // =====================================================================
@@ -189,7 +192,8 @@ async function cargarMas() {
 botonCargarMas.addEventListener("click", cargarMas);
 botonReintentar.addEventListener("click", () => {
   if (vista === "inicio") cargarInicio();
-  else cargarFavoritosVista();
+  else if (vista === "favoritos") cargarFavoritosVista();
+  else cargarCapitulos();
 });
 
 inputBuscar.addEventListener("input", aplicarFiltrosYRender);
@@ -219,21 +223,106 @@ async function cargarFavoritosVista() {
 }
 
 // =====================================================================
+// Vista Capítulos
+// =====================================================================
+function formatearFecha(texto) {
+  const fecha = new Date(texto);
+  return Number.isNaN(fecha.getTime()) ? texto : fecha.toLocaleDateString("es-CO", { dateStyle: "long" });
+}
+
+function crearTarjetaEpisodio(episodio) {
+  const articulo = document.createElement("article");
+  articulo.className =
+    "flex flex-col gap-2 rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-lg " +
+    "transition duration-200 ease-out hover:-translate-y-1 hover:border-lime-400/60";
+  articulo.dataset.episodio = episodio.id;
+
+  articulo.innerHTML = `
+    <span class="w-fit rounded-full bg-lime-400/10 px-2.5 py-0.5 text-xs font-semibold text-lime-400">${episodio.episode}</span>
+    <h4 class="text-base font-bold text-slate-100">${episodio.name}</h4>
+    <p class="text-sm text-slate-400">Estreno: ${formatearFecha(episodio.air_date)}</p>
+    <p class="text-sm text-slate-400">${episodio.characters.length} personajes</p>
+    <button type="button" data-accion="ver-episodio"
+            class="mt-auto rounded-lg bg-lime-400 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-lime-300">
+      Ver personajes
+    </button>
+  `;
+  return articulo;
+}
+
+function renderCapitulos() {
+  mostrarDatos();
+  contenedorResultados.innerHTML = "";
+
+  agruparPorTemporada(episodiosCargados).forEach(({ temporada, episodios }) => {
+    const titulo = document.createElement("h3");
+    titulo.className = "col-span-full mt-4 border-b border-slate-800 pb-2 text-lg font-bold text-lime-400 first:mt-0";
+    titulo.textContent = `Temporada ${temporada}`;
+    contenedorResultados.appendChild(titulo);
+
+    episodios.forEach((episodio) => contenedorResultados.appendChild(crearTarjetaEpisodio(episodio)));
+  });
+
+  contadorTexto.textContent = `${episodiosCargados.length} capítulos`;
+}
+
+async function cargarCapitulos() {
+  mostrarCargando();
+  try {
+    if (episodiosCargados.length === 0) episodiosCargados = await obtenerEpisodios();
+    if (vista !== "capitulos") return; // el usuario cambió de vista mientras cargaba
+    renderCapitulos();
+  } catch (error) {
+    mostrarError("No pudimos cargar los capítulos. Revisa tu conexión e inténtalo de nuevo.");
+    console.error(error);
+  }
+}
+
+async function abrirModalEpisodio(episodio) {
+  modalTitulo.textContent = `${episodio.episode} · ${episodio.name}`;
+  modalCuerpo.innerHTML = `<p class="py-6 text-center text-slate-400">Cargando personajes…</p>`;
+  modalFondo.hidden = false;
+
+  const botonVolver = `
+    <button type="button" data-accion="cerrar-modal"
+            class="mt-5 w-full rounded-lg bg-lime-400 px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-lime-300">
+      Volver
+    </button>`;
+
+  try {
+    const personajes = await obtenerPersonajesPorIds(idsDePersonajes(episodio));
+    modalCuerpo.innerHTML = `
+      <ul class="grid grid-cols-3 gap-3">
+        ${personajes.map((p) => `
+          <li class="text-center text-xs text-slate-300">
+            <img src="${p.image}" alt="${p.name}" loading="lazy"
+                 class="mb-1 aspect-square w-full rounded-lg object-cover">
+            ${p.name}
+          </li>`).join("")}
+      </ul>
+      ${botonVolver}`;
+  } catch (error) {
+    modalCuerpo.innerHTML = `<p class="py-6 text-center text-rose-400">No pudimos cargar los personajes.</p>${botonVolver}`;
+    console.error(error);
+  }
+}
+// =====================================================================
 // Cambiar de vista (Inicio / Favoritos)
 // =====================================================================
 function cambiarVista(nuevaVista) {
   vista = nuevaVista;
 
-  const esInicio = vista === "inicio";
-  enlaceInicio.setAttribute("aria-current", esInicio ? "page" : "false");
-  enlaceFavoritos.setAttribute("aria-current", esInicio ? "false" : "page");
+  enlaceInicio.setAttribute("aria-current", vista === "inicio" ? "page" : "false");
+  enlaceFavoritos.setAttribute("aria-current", vista === "favoritos" ? "page" : "false");
+  enlaceCapitulos.setAttribute("aria-current", vista === "capitulos" ? "page" : "false");
 
-  panelFiltros.hidden = !esInicio;          // los filtros solo aplican a Inicio
-  tituloVista.textContent = esInicio ? "Personajes" : "Tus favoritos";
-  botonCargarMas.hidden = true;             // Favoritos no pagina
+  panelFiltros.hidden = vista !== "inicio";   // los filtros solo aplican a Inicio
+  tituloVista.textContent = TITULOS[vista];
+  botonCargarMas.hidden = true;               // solo Inicio pagina
 
-  if (esInicio) cargarInicio();
-  else cargarFavoritosVista();
+  if (vista === "inicio") cargarInicio();
+  else if (vista === "favoritos") cargarFavoritosVista();
+  else cargarCapitulos();
 }
 
 enlaceInicio.addEventListener("click", (evento) => {
@@ -244,6 +333,11 @@ enlaceInicio.addEventListener("click", (evento) => {
 enlaceFavoritos.addEventListener("click", (evento) => {
   evento.preventDefault();
   cambiarVista("favoritos");
+});
+
+enlaceCapitulos.addEventListener("click", (evento) => {
+  evento.preventDefault();
+  cambiarVista("capitulos");
 });
 
 // =====================================================================
@@ -267,6 +361,13 @@ contenedorResultados.addEventListener("click", (evento) => {
       botonFavorito.setAttribute("aria-label", quedaMarcado ? "Quitar de favoritos" : "Agregar a favoritos");
       botonFavorito.className = claseFavorito(quedaMarcado);
     }
+    return;
+  }
+
+  const botonEpisodio = evento.target.closest('[data-accion="ver-episodio"]');
+  if (botonEpisodio) {
+    const id = Number(botonEpisodio.closest("article").dataset.episodio);
+    abrirModalEpisodio(episodiosCargados.find((e) => e.id === id));
     return;
   }
 
@@ -328,6 +429,7 @@ document.addEventListener("keydown", (evento) => {
 modalCuerpo.addEventListener("click", (evento) => {
   if (evento.target.closest('[data-accion="cerrar-modal"]')) cerrarModal();
 });
+
 
 // --- Primer pintado al cargar la página ---
 cargarInicio();
