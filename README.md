@@ -51,3 +51,8 @@ js/favoritos.js       # LocalStorage
 ## Flujo de trabajo
 
 Cada cambio entra a `main` por una rama y un Pull Request. GitHub Actions compila y valida cada PR, y Vercel publica una preview por PR y la versión de producción con cada merge a `main`.
+
+## Auditoría Lighthouse
+
+![Antes](docs/lighthouse-antes.png)
+![Después](docs/lighthouse-despues.png)
