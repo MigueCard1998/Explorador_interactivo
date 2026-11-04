@@ -23,3 +23,17 @@ export function contarPersonajes(lista) {
 export function textoContador(cantidad) {
   return `${cantidad} personaje${cantidad === 1 ? "" : "s"}`;
 }
+
+export function agruparPorTemporada(episodios) {
+  const grupos = new Map();
+  episodios.forEach((episodio) => {
+    const temporada = Number(episodio.episode.match(/S(\d+)/)[1]);
+    if (!grupos.has(temporada)) grupos.set(temporada, []);
+    grupos.get(temporada).push(episodio);
+  });
+  return [...grupos.entries()].map(([temporada, episodios]) => ({ temporada, episodios }));
+}
+
+export function idsDePersonajes(episodio) {
+  return episodio.characters.map((url) => Number(url.split("/").pop()));
+}
